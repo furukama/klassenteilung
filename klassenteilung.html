@@ -1,0 +1,33 @@
+<html>
+<head>
+    <title>Klassenteilung</title>
+    <script src="src/klassenteilung.js"></script>
+</head>
+<body>
+<p>Ergebnis:
+    <div id="result"></div>
+</p>
+<script>
+    /* Liste der außerschulischen Kontakte
+    [0, [1, 2]] <- Schüler*in 0 hat Kontakt mit Schüler*innern 1 und 2
+     */
+    var preferences = [
+        [0, [1, 2]],
+        [1, [2]],
+        [2, [0]],
+        [3, [4]],
+        [4, [5]],
+        [5, [3, 4]],
+        [6, [0]],
+    ];
+    var result = partition(preferences);
+    console.log(result);
+    for (var i = 0; i < result.nodes.length; i++) {
+        var para = document.createElement("p");
+        var node = document.createTextNode(result.nodes[i].id + ' -> Gruppe ' + result.nodes[i].partition);
+        para.appendChild(node);
+        document.getElementById("result").appendChild(para);
+    }
+</script>
+</body>
+</html>
