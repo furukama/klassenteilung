@@ -67,4 +67,23 @@ export class Graph {
         }
         return cost;
     }
+
+    initializePartitions(size) {
+        for (i = 0; i < size; i++) {
+            this.nodes[i].partition = (i % 2) ? 'B' : 'A';
+        }
+    }
+
+    reassignPartitions(gains, jMax) {
+        let k;
+        for (k = 0; k < jMax; k++) {
+            this.nodes.forEach(function (n) {
+                if (n.id === gains[k][0][0].id) {
+                    n.partition = 'B';
+                } else if (n.id === gains[k][0][1].id) {
+                    n.partition = 'A';
+                }
+            });
+        }
+    }
 }

@@ -4,7 +4,7 @@
     Algorithm to calculate the optimal partition of pupils in a class
     according to their out of school preferences
 
-    Copyright 2020 DataLion GmbH
+    Copyright 2021 DataLion GmbH
 
     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
     documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -26,28 +26,25 @@ import {Node, Edge, Graph} from './classes.js';
 function initGraph(data) {
     const edges = [];
     const nodes = [];
-    const seenNodes = [];
 
     data.forEach(function (line) {
-        if (seenNodes.indexOf(line[0]) === -1) {
-            nodes.push(new Node(line[0]));
-            seenNodes.push(line[0]);
-        }
+        addIfNotPresent(nodes, line[0]);
         line[1].forEach(function (n) {
-            if (seenNodes.indexOf(n) === -1) {
-                nodes.push(new Node(n));
-                seenNodes.push(n);
-            }
+            addIfNotPresent(nodes, n);
             edges.push(new Edge(line[0], n));
         });
     });
     return new Graph(nodes, edges);
 }
 
-function initializePartitions(graph, size) {
-    for (i = 0; i < size; i++) {
-        graph.nodes[i].partition = (i % 2) ? 'B' : 'A';
+function addIfNotPresent(nodes, node) {
+    if (newNode(node, nodes)) {
+        nodes.push(new Node(node));
     }
+}
+
+function newNode(node, nodes) {
+    return nodes.filter(n => n.id === node).length === 0;
 }
 
 /*
@@ -64,7 +61,7 @@ function kl(graph) {
     let totalGain = 0;
 
     /* Split nodes equally among A and B */
-    initializePartitions(graph, size);
+    graph.initializePartitions(size);
 
     while (true) {
         const gains = [];
@@ -119,15 +116,7 @@ function kl(graph) {
         }
 
         if (gainMax > 0 && graph.getPartitionCost() > 0) {
-            for (k = 0; k < jMax; k++) {
-                graph.nodes.forEach(function (n) {
-                    if (n.id === gains[k][0][0].id) {
-                        n.partition = 'B';
-                    } else if (n.id === gains[k][0][1].id) {
-                        n.partition = 'A';
-                    }
-                });
-            }
+            graph.reassignPartitions(gains, jMax);
             pass += 1;
             totalGain += gainMax;
         } else {

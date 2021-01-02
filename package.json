@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/furukama/klassenteilung#readme",
   "devDependencies": {
+    "eslint": "^7.17.0",
+    "standard": "^16.0.3",
     "webpack": "^5.11.1",
     "webpack-cli": "^4.3.1"
   }
