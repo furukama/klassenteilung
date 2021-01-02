@@ -1,0 +1,25 @@
+{
+  "name": "klassenteilung",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/furukama/klassenteilung.git"
+  },
+  "keywords": [],
+  "author": "Benedikt Koehler",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/furukama/klassenteilung/issues"
+  },
+  "homepage": "https://github.com/furukama/klassenteilung#readme",
+  "devDependencies": {
+    "webpack": "^5.11.1",
+    "webpack-cli": "^4.3.1"
+  }
+}

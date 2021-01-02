@@ -22,9 +22,9 @@
 */
 
 function initGraph(data) {
-    var edges = [];
-    var nodes = [];
-    var seenNodes = [];
+    const edges = [];
+    const nodes = [];
+    const seenNodes = [];
 
     data.forEach(function (line) {
         if (seenNodes.indexOf(line[0]) === -1) {
@@ -43,17 +43,19 @@ function initGraph(data) {
 }
 
 function kl(graph) {
-    var size = graph.nodes.length;
-    for (var i = 0; i < size; i++) {
+    let k;
+    let i;
+    const size = graph.nodes.length;
+    for (i = 0; i < size; i++) {
         graph.nodes[i].partition = (i % 2) ? 'B' : 'A';
     }
     console.log('Initial Cost', graph.getPartitionCost());
-    var pass = 0;
-    var totalGain = 0;
+    let pass = 0;
+    let totalGain = 0;
 
     while (true) {
-        var groupA = [];
-        var groupB = [];
+        let groupA = [];
+        let groupB = [];
 
         graph.nodes.forEach(function (n) {
             if (n.partition === 'A') {
@@ -63,23 +65,23 @@ function kl(graph) {
             }
         });
 
-        var DValues = {};
+        const DValues = {};
         graph.nodes.forEach(function (n) {
             DValues[n.id] = n.getDValue();
         });
         console.log(DValues);
-        var gains = [];
+        const gains = [];
 
         for (i = 0; i < Math.floor(graph.nodes.length / 2); i++) {
-            var maxGain = -Infinity;
-            var pair = [];
+            let maxGain = -Infinity;
+            let pair = [];
 
             groupA.forEach(function (a) {
                 groupB.forEach(function (b) {
-                    var connections = a.edges.filter(function (n) {
+                    const connections = a.edges.filter(function (n) {
                         return b.edges.indexOf(n) !== -1;
                     }).length;
-                    var gain = DValues[a.id] + DValues[b.id] - (2 * connections);
+                    const gain = DValues[a.id] + DValues[b.id] - (2 * connections);
 
                     if (gain > maxGain) {
                         maxGain = gain;
@@ -88,8 +90,8 @@ function kl(graph) {
                 });
             });
 
-            var a = pair[0];
-            var b = pair[1];
+            const a = pair[0];
+            const b = pair[1];
             groupA = groupA.filter(function (n) {
                 return n !== a;
             });
@@ -99,32 +101,32 @@ function kl(graph) {
             gains.push([[a, b], maxGain]);
 
             groupA.forEach(function (x) {
-                var connections_xa = x.edges.filter(function (n) {
+                const connections_xa = x.edges.filter(function (n) {
                     return a.edges.indexOf(n) !== -1;
                 }).length;
-                var connections_xb = x.edges.filter(function (n) {
+                const connections_xb = x.edges.filter(function (n) {
                     return b.edges.indexOf(n) !== -1;
                 }).length;
                 DValues[x.id] += (2 * connections_xa - 2 * connections_xb);
             });
 
             groupB.forEach(function (y) {
-                var connections_yb = y.edges.filter(function (n) {
+                const connections_yb = y.edges.filter(function (n) {
                     return b.edges.indexOf(n) !== -1;
                 }).length;
-                var connections_ya = y.edges.filter(function (n) {
+                const connections_ya = y.edges.filter(function (n) {
                     return a.edges.indexOf(n) !== -1;
                 }).length;
                 DValues[y.id] += (2 * connections_yb - 2 * connections_ya);
             });
         }
 
-        var gainMax = -Infinity;
-        var jMax = 0;
+        let gainMax = -Infinity;
+        let jMax = 0;
 
-        for (var j = 1; j < (gains.length + 1); j++) {
-            var gainSum = 0;
-            for (var k = 0; k < j; k++) {
+        for (let j = 1; j < (gains.length + 1); j++) {
+            let gainSum = 0;
+            for (k = 0; k < j; k++) {
                 gainSum += gains[k][1];
             }
             if (gainSum > gainMax) {
@@ -152,7 +154,7 @@ function kl(graph) {
     return graph;
 }
 
-function partition(preferences) {
+export default function partition(preferences) {
     var graph = initGraph(preferences);
     return kl(graph);
 }
@@ -164,9 +166,9 @@ class Node {
     }
 
     getDValue() {
-        var DValue = 0;
-        var $this = this;
-        var otherNode = null;
+        let DValue = 0;
+        const $this = this;
+        let otherNode = null;
         this.edges.forEach(function (e) {
             if (e.from === $this.id) {
                 otherNode = e.toNode;
@@ -183,7 +185,7 @@ class Node {
     }
 
     addEdge(edge) {
-        for (var e = 0; e < this.edges.length; e += 1) {
+        for (let e = 0; e < this.edges.length; e += 1) {
             if (this.edges[e].from === edge.from && this.edges[e].to === edge.to) {
                 return;
             }
@@ -204,12 +206,12 @@ class Graph {
         this.nodes = nodes;
         this.edges = edges;
 
-        var nodeDict = {};
+        const nodeDict = {};
         this.nodes.forEach(function (n) {
             nodeDict[n.id] = n;
         });
 
-        for (var e = 0; e < this.edges.length; e++) {
+        for (let e = 0; e < this.edges.length; e++) {
             this.edges[e].fromNode = nodeDict[this.edges[e].from];
             nodeDict[this.edges[e].from].addEdge(this.edges[e]);
             this.edges[e].toNode = nodeDict[this.edges[e].to];
@@ -218,8 +220,8 @@ class Graph {
     }
 
     getPartitionCost() {
-        var cost = 0;
-        for (var i = 0; i < this.edges.length; i++) {
+        let cost = 0;
+        for (let i = 0; i < this.edges.length; i++) {
             if (this.edges[i].fromNode.partition !== this.edges[i].toNode.partition) {
                 cost += 1;
             }
