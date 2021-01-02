@@ -70,7 +70,7 @@ function kl(graph) {
         let gainMax = -Infinity;
         let jMax = 0;
 
-        graph.nodes.forEach(function (n) {
+        graph.nodes.forEach(n => {
             if (n.partition === 'A') {
                 groupA.push(n);
             } else {
@@ -146,7 +146,7 @@ function initDValues(graph) {
 }
 
 function addDValue(group, a, b) {
-    return (2 * countCommon(group.edges, a.edges) - 2 * countCommon(group.edges, b.edges))
+    return (2 * countCommon(group.edges, a.edges) - 2 * countCommon(group.edges, b.edges));
 }
 
 function updateGroup(group, a, b, DValues) {
