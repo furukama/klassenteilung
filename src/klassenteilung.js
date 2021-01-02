@@ -1,5 +1,5 @@
 /*
-    klassenteilung
+    Klassenteilung
 
     Algorithm to calculate the optimal partition of pupils in a class
     according to their out of school preferences
@@ -20,6 +20,8 @@
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
+
+import {Node, Edge, Graph} from './classes.js';
 
 function initGraph(data) {
     const edges = [];
@@ -42,20 +44,34 @@ function initGraph(data) {
     return new Graph(nodes, edges);
 }
 
-function kl(graph) {
-    let k;
-    let i;
-    const size = graph.nodes.length;
+function initializePartitions(graph, size) {
     for (i = 0; i < size; i++) {
         graph.nodes[i].partition = (i % 2) ? 'B' : 'A';
     }
-    console.log('Initial Cost', graph.getPartitionCost());
+}
+
+/*
+    The following is an implementation of the Kerningham-Lin Algorithm
+    for partitioning graphs:
+    https://en.wikipedia.org/wiki/Kernighan%E2%80%93Lin_algorithm
+ */
+function kl(graph) {
+    const size = graph.nodes.length;
+
+    let k;
+    let i;
     let pass = 0;
     let totalGain = 0;
 
+    /* Split nodes equally among A and B */
+    initializePartitions(graph, size);
+
     while (true) {
+        const gains = [];
         let groupA = [];
         let groupB = [];
+        let gainMax = -Infinity;
+        let jMax = 0;
 
         graph.nodes.forEach(function (n) {
             if (n.partition === 'A') {
@@ -65,23 +81,16 @@ function kl(graph) {
             }
         });
 
-        const DValues = {};
-        graph.nodes.forEach(function (n) {
-            DValues[n.id] = n.getDValue();
-        });
-        console.log(DValues);
-        const gains = [];
+        const DValues = initDValues(graph);
 
         for (i = 0; i < Math.floor(graph.nodes.length / 2); i++) {
             let maxGain = -Infinity;
             let pair = [];
+            let gain = 0;
 
             groupA.forEach(function (a) {
                 groupB.forEach(function (b) {
-                    const connections = a.edges.filter(function (n) {
-                        return b.edges.indexOf(n) !== -1;
-                    }).length;
-                    const gain = DValues[a.id] + DValues[b.id] - (2 * connections);
+                    gain = calculateGain(a, b, DValues);
 
                     if (gain > maxGain) {
                         maxGain = gain;
@@ -92,37 +101,11 @@ function kl(graph) {
 
             const a = pair[0];
             const b = pair[1];
-            groupA = groupA.filter(function (n) {
-                return n !== a;
-            });
-            groupB = groupB.filter(function (n) {
-                return n !== b;
-            });
             gains.push([[a, b], maxGain]);
 
-            groupA.forEach(function (x) {
-                const connections_xa = x.edges.filter(function (n) {
-                    return a.edges.indexOf(n) !== -1;
-                }).length;
-                const connections_xb = x.edges.filter(function (n) {
-                    return b.edges.indexOf(n) !== -1;
-                }).length;
-                DValues[x.id] += (2 * connections_xa - 2 * connections_xb);
-            });
-
-            groupB.forEach(function (y) {
-                const connections_yb = y.edges.filter(function (n) {
-                    return b.edges.indexOf(n) !== -1;
-                }).length;
-                const connections_ya = y.edges.filter(function (n) {
-                    return a.edges.indexOf(n) !== -1;
-                }).length;
-                DValues[y.id] += (2 * connections_yb - 2 * connections_ya);
-            });
+            updateGroup(groupA, a, b, DValues);
+            updateGroup(groupB, b, a, DValues);
         }
-
-        let gainMax = -Infinity;
-        let jMax = 0;
 
         for (let j = 1; j < (gains.length + 1); j++) {
             let gainSum = 0;
@@ -154,78 +137,39 @@ function kl(graph) {
     return graph;
 }
 
+function countCommon(a, b) {
+    return a.filter(function (n) {
+        return b.indexOf(n) !== -1;
+    }).length;
+}
+
+function calculateGain(a, b, DValues) {
+    const connections = countCommon(a.edges, b.edges);
+    return DValues[a.id] + DValues[b.id] - (2 * connections);
+}
+
+function initDValues(graph) {
+    const DValues = {};
+    graph.nodes.forEach(function (n) {
+        DValues[n.id] = n.getDValue();
+    });
+    return DValues;
+}
+
+function addDValue(group, a, b) {
+    return (2 * countCommon(group.edges, a.edges) - 2 * countCommon(group.edges, b.edges))
+}
+
+function updateGroup(group, a, b, DValues) {
+    group = group.filter(function (n) {
+        return n !== a;
+    });
+    group.forEach(function (x) {
+        DValues[x.id] += addDValue(x, a, b);
+    });
+}
+
 export default function partition(preferences) {
-    var graph = initGraph(preferences);
+    const graph = initGraph(preferences);
     return kl(graph);
-}
-
-class Node {
-    constructor(id) {
-        this.id = id;
-        this.edges = [];
-    }
-
-    getDValue() {
-        let DValue = 0;
-        const $this = this;
-        let otherNode = null;
-        this.edges.forEach(function (e) {
-            if (e.from === $this.id) {
-                otherNode = e.toNode;
-            } else if (e.to === $this.id) {
-                otherNode = e.fromNode;
-            }
-            if (otherNode.partition !== $this.partition) {
-                DValue += 1;
-            } else {
-                DValue -= 1;
-            }
-        });
-        return DValue;
-    }
-
-    addEdge(edge) {
-        for (let e = 0; e < this.edges.length; e += 1) {
-            if (this.edges[e].from === edge.from && this.edges[e].to === edge.to) {
-                return;
-            }
-        }
-        this.edges.push(edge);
-    }
-}
-
-class Edge {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
-    }
-}
-
-class Graph {
-    constructor(nodes, edges) {
-        this.nodes = nodes;
-        this.edges = edges;
-
-        const nodeDict = {};
-        this.nodes.forEach(function (n) {
-            nodeDict[n.id] = n;
-        });
-
-        for (let e = 0; e < this.edges.length; e++) {
-            this.edges[e].fromNode = nodeDict[this.edges[e].from];
-            nodeDict[this.edges[e].from].addEdge(this.edges[e]);
-            this.edges[e].toNode = nodeDict[this.edges[e].to];
-            nodeDict[this.edges[e].to].addEdge(this.edges[e]);
-        }
-    }
-
-    getPartitionCost() {
-        let cost = 0;
-        for (let i = 0; i < this.edges.length; i++) {
-            if (this.edges[i].fromNode.partition !== this.edges[i].toNode.partition) {
-                cost += 1;
-            }
-        }
-        return cost;
-    }
 }
