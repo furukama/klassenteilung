@@ -31,10 +31,14 @@ function initGraph(data) {
         addIfNotPresent(nodes, line[0]);
         line[1].forEach(function (n) {
             addIfNotPresent(nodes, n);
-            edges.push(new Edge(line[0], n));
+            edges.push(new Edge(getNode(nodes, line[0]), getNode(nodes, n)));
         });
     });
     return new Graph(nodes, edges);
+}
+
+function getNode(nodes, id) {
+    return nodes.filter(n => n.id === id)[0];
 }
 
 function addIfNotPresent(nodes, node) {

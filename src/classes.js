@@ -8,9 +8,9 @@ export class Node {
         let DValue = 0;
         const $this = this;
         this.edges.forEach(function (e) {
-            if (e.from === $this.id) {
+            if (e.fromNode.id === $this.id) {
                 DValue += $this.updateDValue($this, e.toNode);
-            } else if (e.to === $this.id) {
+            } else if (e.toNode.id === $this.id) {
                 DValue += $this.updateDValue($this, e.fromNode);
             }
 
@@ -33,14 +33,14 @@ export class Node {
     }
 
     edgeExists(n) {
-        return this.edges.filter(e => (e.from === n.from && e.to === n.to)).length > 0;
+        return this.edges.filter(e => (e.fromNode.id === n.from && e.toNode.id === n.to)).length > 0;
     }
 }
 
 export class Edge {
     constructor(from, to) {
-        this.from = from;
-        this.to = to;
+        this.fromNode = from;
+        this.toNode = to;
     }
 }
 
@@ -49,16 +49,9 @@ export class Graph {
         this.nodes = nodes;
         this.edges = edges;
 
-        const nodeDict = {};
-        this.nodes.forEach(function (n) {
-            nodeDict[n.id] = n;
-        });
-
         for (let e = 0; e < this.edges.length; e++) {
-            this.edges[e].fromNode = nodeDict[this.edges[e].from];
-            nodeDict[this.edges[e].from].addEdge(this.edges[e]);
-            this.edges[e].toNode = nodeDict[this.edges[e].to];
-            nodeDict[this.edges[e].to].addEdge(this.edges[e]);
+            this.getNode(this.edges[e].fromNode.id).addEdge(this.edges[e]);
+            this.getNode(this.edges[e].toNode.id).addEdge(this.edges[e]);
         }
     }
 
@@ -66,6 +59,10 @@ export class Graph {
         return this.edges.filter(
           e => e.fromNode.partition !== e.toNode.partition
         ).length;
+    }
+
+    getNode(id) {
+        return this.nodes.filter(n => n.id === id)[0];
     }
 
     initializePartitions(size) {
