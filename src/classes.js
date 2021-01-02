@@ -7,29 +7,33 @@ export class Node {
     getDValue() {
         let DValue = 0;
         const $this = this;
-        let otherNode = null;
         this.edges.forEach(function (e) {
             if (e.from === $this.id) {
-                otherNode = e.toNode;
+                DValue += $this.updateDValue($this, e.toNode);
             } else if (e.to === $this.id) {
-                otherNode = e.fromNode;
+                DValue += $this.updateDValue($this, e.fromNode);
             }
-            if (otherNode.partition !== $this.partition) {
-                DValue += 1;
-            } else {
-                DValue -= 1;
-            }
+
         });
         return DValue;
     }
 
+    updateDValue(node, other) {
+        if (node.partition !== other.partition) {
+            return 1;
+        }
+        return -1;
+    }
+
     addEdge(edge) {
-        for (let e = 0; e < this.edges.length; e += 1) {
-            if (this.edges[e].from === edge.from && this.edges[e].to === edge.to) {
-                return;
-            }
+        if (this.edgeExists(edge)) {
+            return;
         }
         this.edges.push(edge);
+    }
+
+    edgeExists(n) {
+        return this.edges.filter(e => (e.from === n.from && e.to === n.to)).length > 0;
     }
 }
 
@@ -59,13 +63,9 @@ export class Graph {
     }
 
     getPartitionCost() {
-        let cost = 0;
-        for (let i = 0; i < this.edges.length; i++) {
-            if (this.edges[i].fromNode.partition !== this.edges[i].toNode.partition) {
-                cost += 1;
-            }
-        }
-        return cost;
+        return this.edges.filter(
+          e => e.fromNode.partition !== e.toNode.partition
+        ).length;
     }
 
     initializePartitions(size) {
@@ -75,9 +75,8 @@ export class Graph {
     }
 
     reassignPartitions(gains, jMax) {
-        let k;
-        for (k = 0; k < jMax; k++) {
-            this.nodes.forEach(function (n) {
+        for (let k = 0; k < jMax; k++) {
+            this.nodes.forEach(n => {
                 if (n.id === gains[k][0][0].id) {
                     n.partition = 'B';
                 } else if (n.id === gains[k][0][1].id) {
